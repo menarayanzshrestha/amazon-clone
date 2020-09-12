@@ -22,21 +22,19 @@ function Payment() {
   const [disabled, setDisabled] = useState(true);
   const [clientSecret, setClientSecret] = useState(true);
 
-  //   useEffect(() => {
-  //     // generate the special stripe secret which allows us to charge a customer
-  //     const getClientSecret = async () => {
-  //       const response = await axios({
-  //         method: "post",
-  //         // Stripe expects the total in a currencies subunits
-  //         url: `/payments/create?total=${getBasketTotal(basket) * 100}`,
-  //       })
-  //         .then((res) => console.log(res, "here is re"))
-  //         .catch((err) => console.log(err, "here is error"));
-  //       setClientSecret(response.data.clientSecret);
-  //     };
+  useEffect(() => {
+    // generate the special stripe secret which allows us to charge a customer
+    const getClientSecret = async () => {
+      const response = await axios({
+        method: "post",
+        // Stripe expects the total in a currencies subunits
+        url: `/payments/create?total=${getBasketTotal(basket) * 100}`,
+      });
+      setClientSecret(response.data.clientSecret);
+    };
 
-  //     getClientSecret();
-  //   }, [basket]);
+    getClientSecret();
+  }, [basket]);
 
   console.log("THE SECRET IS >>>", clientSecret);
   console.log("👱", user);
@@ -55,24 +53,23 @@ function Payment() {
       .then(({ paymentIntent }) => {
         // paymentIntent = payment confirmation
 
-        // db
-        //   .collection('users')
-        //   .doc(user?.uid)
-        //   .collection('orders')
-        //   .doc(paymentIntent.id)
-        //   .set({
-        //       basket: basket,
-        //       amount: paymentIntent.amount,
-        //       created: paymentIntent.created
-        //   })
+        db.collection("users")
+          .doc(user?.uid)
+          .collection("orders")
+          .doc(paymentIntent.id)
+          .set({
+            basket: basket,
+            amount: paymentIntent.amount,
+            created: paymentIntent.created,
+          });
 
         setSucceeded(true);
         setError(null);
         setProcessing(false);
 
-        // dispatch({
-        //     type: 'EMPTY_BASKET'
-        // })
+        dispatch({
+          type: "EMPTY_BASKET",
+        });
 
         history.replace("/orders");
       });
@@ -99,8 +96,8 @@ function Payment() {
           </div>
           <div className="payment__address">
             <p>{user?.email}</p>
-            <p>Kathmandu</p>
-            <p>Nepal</p>
+            <p>123 React Lane</p>
+            <p>Los Angeles, CA</p>
           </div>
         </div>
 
@@ -110,9 +107,8 @@ function Payment() {
             <h3>Review items and delivery</h3>
           </div>
           <div className="payment__items">
-            {basket.map((item, i) => (
+            {basket.map((item) => (
               <CheckoutProduct
-                key={i}
                 id={item.id}
                 title={item.title}
                 image={item.image}
